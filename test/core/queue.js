@@ -14,6 +14,16 @@ describe('queue', function(){
     });
   });
 
+  it("can emit a connected event when redis is ready", function(done){
+    queue = new specHelper.NR.queue({connection: specHelper.connectionDetails, queue: specHelper.queue});
+    queue.on('connected', function (connected) {
+      connected.should.equal(true);
+      queue.end();
+      done();
+    });
+    queue.connect();
+  });
+
   it("can provide an error if connection failed", function(done) {
     // Only run this test if this is using real redis
     if(process.env.FAKEREDIS == 'true') {
@@ -263,7 +273,7 @@ describe('queue', function(){
 
       beforeEach(function(done){
 
-        var errorPayload = function(id){ 
+        var errorPayload = function(id){
           return JSON.stringify({
             worker: 'busted-worker-' + id,
             queue: 'busted-queue',
@@ -300,7 +310,7 @@ describe('queue', function(){
         queue.failed(1,2, function(err, failedJobs){
           should.not.exist(err);
           failedJobs.length.should.equal(2);
-          
+
           failedJobs[0].worker.should.equal('busted-worker-2');
           failedJobs[0].queue.should.equal('busted-queue');
           failedJobs[0].exception.should.equal('ERROR_NAME');
